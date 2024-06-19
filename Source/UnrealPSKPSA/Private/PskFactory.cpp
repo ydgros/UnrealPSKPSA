@@ -8,6 +8,7 @@
 #include "Rendering/SkeletalMeshLODImporterData.h"
 #include "Rendering/SkeletalMeshLODModel.h"
 #include "Rendering/SkeletalMeshModel.h"
+#include "Engine/SkinnedAssetCommon.h"
 
 UObject* UPskFactory::Import(const FString& Filename, UObject* Parent, const FName Name, const EObjectFlags Flags, TMap<FString, FString> MaterialNameToPathMap)
 {
@@ -208,7 +209,7 @@ UObject* UPskFactory::Import(const FString& Filename, UObject* Parent, const FNa
 	{
 		auto DataPosition = 0;
 		
-		for (auto [Name, VertexCount] : Data.MorphInfos)
+		for (auto [FName, VertexCount] : Data.MorphInfos)
 		{
 			auto MorphTarget = NewObject<UMorphTarget>(SkeletalMesh, Name);
 			
