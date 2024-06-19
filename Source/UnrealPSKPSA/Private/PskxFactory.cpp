@@ -4,6 +4,7 @@
 #include "PskReader.h"
 #include "RawMesh.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "ComponentReregisterContext.h"
 
 UObject* UPskxFactory::Import(const FString& Filename, UObject* Parent, const FName Name, const EObjectFlags Flags, TMap<FString, FString> MaterialNameToPathMap)
 {
