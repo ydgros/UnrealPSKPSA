@@ -8,6 +8,7 @@
 #include "Rendering/SkeletalMeshLODImporterData.h"
 #include "Rendering/SkeletalMeshLODModel.h"
 #include "Rendering/SkeletalMeshModel.h"
+#include "Rendering/SkeletalMeshRenderData.h"
 #include "Engine/SkinnedAssetCommon.h"
 #include "Misc/EngineVersionComparison.h"
 
@@ -172,13 +173,21 @@ UObject* UPskFactory::Import(const FString& Filename, UObject* Parent, const FNa
 	SkeletalMesh->SetHasVertexColors(true);
 
 	FSkeletalMeshModel* ImportedResource = SkeletalMesh->GetImportedModel();
+#if UE_VERSION_OLDER_THAN(5,6,0) //ydgro ue5.6 //SkeletalMesh.h GetLODInfo
 	auto& SkeletalMeshLODInfos = SkeletalMesh->GetLODInfoArray();
+#else
+	auto SkeletalMeshLODInfos = SkeletalMesh->GetLODInfo(0);
+#endif
+
+#if UE_VERSION_OLDER_THAN(5,6,0)
 	SkeletalMeshLODInfos.Empty();
 	SkeletalMeshLODInfos.Add(FSkeletalMeshLODInfo());
 	SkeletalMeshLODInfos[0].ReductionSettings.NumOfTrianglesPercentage = 1.0f;
 	SkeletalMeshLODInfos[0].ReductionSettings.NumOfVertPercentage = 1.0f;
 	SkeletalMeshLODInfos[0].ReductionSettings.MaxDeviationPercentage = 0.0f;
 	SkeletalMeshLODInfos[0].LODHysteresis = 0.02f;
+#else
+#endif
 
 	ImportedResource->LODModels.Empty();
 	ImportedResource->LODModels.Add(new FSkeletalMeshLODModel);
@@ -200,7 +209,12 @@ UObject* UPskFactory::Import(const FString& Filename, UObject* Parent, const FNa
 
 	auto& MeshBuilderModule = IMeshBuilderModule::GetForRunningPlatform();
 	const FSkeletalMeshBuildParameters SkeletalMeshBuildParameters(SkeletalMesh, GetTargetPlatformManagerRef().GetRunningTargetPlatform(), 0, false);
+	class FSkeletalMeshRenderData OutRenderData;
+#if UE_VERSION_OLDER_THAN(5,6,0) //ydgro ue5.6 //IMeshBuilderModule.h //SkeletalMeshRenderData.h
 	if (!MeshBuilderModule.BuildSkeletalMesh(SkeletalMeshBuildParameters))
+#else
+	if (!MeshBuilderModule.BuildSkeletalMesh(OutRenderData,SkeletalMeshBuildParameters))
+#endif
 	{
 		SkeletalMesh->MarkAsGarbage();
 		return nullptr;
@@ -246,11 +260,11 @@ UObject* UPskFactory::Import(const FString& Filename, UObject* Parent, const FNa
 	Skeleton->MergeAllBonesToBoneTree(SkeletalMesh);
 	
 	FAssetRegistryModule::AssetCreated(SkeletalMesh);
-	SkeletalMesh->MarkPackageDirty();
+	//SkeletalMesh->MarkPackageDirty(); //未使用表达式 //UObjectBaseUtility.h
 
 	Skeleton->PostEditChange();
 	FAssetRegistryModule::AssetCreated(Skeleton);
-	Skeleton->MarkPackageDirty();
+	//Skeleton->MarkPackageDirty(); //未使用表达式 //UObjectBaseUtility.h
 
 	return SkeletalMesh;
 }
